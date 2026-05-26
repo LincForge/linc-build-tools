@@ -1,0 +1,111 @@
+# linc-quality bundled detekt config
+# Harvested from SpatialLearn + Imagination 2026-05-26.
+# Consumers can override via lincQuality { detektConfigPath = "path/to/custom.yml" }.
+
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+
+config:
+  validation: true
+  warningsAsErrors: false
+
+complexity:
+  active: true
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 20
+  LongMethod:
+    active: true
+    threshold: 80
+  LongParameterList:
+    active: true
+    functionThreshold: 8
+    constructorThreshold: 12
+    ignoreDefaultParameters: true
+    ignoreDataClasses: true
+    ignoreAnnotatedParameter: ["Composable"]
+  NestedBlockDepth:
+    active: true
+    threshold: 5
+  TooManyFunctions:
+    active: true
+    thresholdInFiles: 30
+    thresholdInClasses: 30
+    thresholdInInterfaces: 15
+    thresholdInObjects: 15
+    thresholdInEnums: 15
+    ignoreDeprecated: true
+    ignorePrivate: true
+    ignoreOverridden: true
+
+coroutines:
+  active: true
+  GlobalCoroutineUsage:
+    active: true
+  RedundantSuspendModifier:
+    active: true
+  SuspendFunWithFlowReturnType:
+    active: true
+
+empty-blocks:
+  active: true
+  EmptyCatchBlock:
+    active: true
+    allowedExceptionNameRegex: "_|(ignore|expected).*"
+  EmptyFunctionBlock:
+    active: true
+    ignoreOverridden: true
+
+exceptions:
+  active: true
+  SwallowedException:
+    active: true
+    ignoredExceptionTypes:
+      - "InterruptedException"
+      - "MalformedURLException"
+      - "NumberFormatException"
+      - "ParseException"
+    allowedExceptionNameRegex: "_|(ignore|expected).*"
+  TooGenericExceptionCaught:
+    active: false  # noisy on platform-specific iosMain wrappers
+  TooGenericExceptionThrown:
+    active: true
+
+naming:
+  active: true
+  FunctionNaming:
+    ignoreAnnotated:
+      - 'Composable'
+    excludes:
+      - '**/iosMain/**'
+  TopLevelPropertyNaming:
+    constantPattern: '[A-Z][A-Za-z0-9]*'
+
+performance:
+  active: true
+  ArrayPrimitive:
+    active: true
+  ForEachOnRange:
+    active: true
+  SpreadOperator:
+    active: true
+  UnnecessaryTemporaryInstantiation:
+    active: true
+
+style:
+  active: true
+  ReturnCount:
+    max: 5
+  MagicNumber:
+    active: false  # KMP has too many platform constants; noise > signal
+  MaxLineLength:
+    maxLineLength: 140
+    excludeCommentStatements: true
+  WildcardImport:
+    active: false  # IDE manages this; rule is noisy with star imports of compose
+  UnusedPrivateMember:
+    ignoreAnnotated:
+      - 'Preview'
+  ForbiddenComment:
+    active: false  # don't gate on TODO/FIXME for now
