@@ -1,5 +1,6 @@
 package com.linc.quality
 
+import io.gitlab.arturbosch.detekt.Detekt
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
@@ -87,6 +88,30 @@ class LincQualityPluginTest {
             .getResourceAsStream("detekt-config.yml")
         assertNotNull(configStream, "detekt-config.yml should be on the plugin classpath")
         configStream.close()
+    }
+
+    @Test
+    fun `detekt emits machine-readable XML report`() {
+        // The advisory-signal pillar parser reads detekt's checkstyle-format XML;
+        // the plugin must pin xml.required so every consumer emits it deterministically.
+        val project = ProjectBuilder.builder().build()
+        project.plugins.apply("linc-quality")
+        val detektTask = project.tasks.findByName("detekt") as Detekt
+        assertTrue(
+            detektTask.reports.xml.required.get(),
+            "detekt XML report should be required so the lint pillar parser can read it"
+        )
+    }
+
+    @Test
+    fun `detekt emits SARIF report for code-scanning follow-on`() {
+        val project = ProjectBuilder.builder().build()
+        project.plugins.apply("linc-quality")
+        val detektTask = project.tasks.findByName("detekt") as Detekt
+        assertTrue(
+            detektTask.reports.sarif.required.get(),
+            "detekt SARIF report should be required (free; enables the deferred code-scanning follow-on)"
+        )
     }
 
     @Test
