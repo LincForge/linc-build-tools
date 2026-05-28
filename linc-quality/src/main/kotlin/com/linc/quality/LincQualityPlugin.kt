@@ -1,9 +1,11 @@
 package com.linc.quality
 
+import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
+import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 import java.io.File
 
 /**
@@ -39,6 +41,15 @@ class LincQualityPlugin : Plugin<Project> {
         detektExt.buildUponDefaultConfig = true
         detektExt.allRules = false
         detektExt.parallel = true
+
+        // Pin machine-readable reports so the advisory-signal lint pillar parser
+        // (linc-ops nightly-lint) finds the same files on every consumer:
+        //   XML   → <module>/build/reports/detekt/detekt.xml (checkstyle format, parsed for counts)
+        //   SARIF → <module>/build/reports/detekt/detekt.sarif (free; deferred code-scanning follow-on)
+        project.tasks.withType(Detekt::class.java).configureEach {
+            reports.xml.required.set(true)
+            reports.sarif.required.set(true)
+        }
 
         // KMP source-set discovery: detekt-gradle-plugin's default source set search only
         // picks up src/main/kotlin (JVM convention). KMP repos use src/commonMain/kotlin,
@@ -76,6 +87,13 @@ class LincQualityPlugin : Plugin<Project> {
         ktlintExt.outputColorName.set("RED")
         ktlintExt.coloredOutput.set(true)
         ktlintExt.verbose.set(false)
+
+        // Emit a checkstyle-format XML report so the advisory-signal lint pillar parser
+        // can count ktlint violations the same way it counts detekt's. ktlint-gradle writes
+        // one report per source-set check task under build/reports/ktlint/<task>/<task>.xml.
+        ktlintExt.reporters {
+            reporter(ReporterType.CHECKSTYLE)
+        }
 
         project.afterEvaluate {
             ktlintExt.ignoreFailures.set(ext.ignoreFailures.get())
